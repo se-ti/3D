@@ -8,14 +8,6 @@
 
 */
 
-/*minkowski()
-{
-	//cube([5, 10, 15]);
-!	crown(9, 11, 7, 4, 7, fn= 40);
-	sphere(r=1, $fa=2, $fs=0.2 );
-}
-/**/
-
 delta = 0.1;
 
 R = 18.1 / 2;
@@ -23,12 +15,26 @@ r = 5;// (18.1 - 2.8 ) / 2;
 th = 6.5;
 h = 15;
 
-crown(r, R, h, th, 4, 20, fn= 200);
+$fn = 200;
+crown(r, R, th, 4, 7, 0, fn= 400);
 
-
-// мин / макс радиусы, высота зуба, число зубьев, угол между вертикалью и передней кромкой, "чистота"
-module crown(r, R, h, th, n, attack, fn = 300) 
+translate([0,0,-h+th])
+difference()
 {
+	cylinder(r= R, h =h -th);
+	translate([0,0,-delta/2])
+		cylinder(r=r, h = h -th +delta);
+}
+
+
+
+// мин / макс радиусы, высота зуба, число зубьев, 
+// угол между вертикалью и передней кромкой, 
+// угол между направлением на ось и передней кромкой
+//"чистота"
+module crown(r, R, th, n, attack, rare, fn = 300) 
+{
+	step = 3; // макс. глубина пазов для щупа
 	difference()
 	{
 		intersection()
@@ -37,27 +43,28 @@ module crown(r, R, h, th, n, attack, fn = 300)
 			{
 				for (i = [0 : n-1])   
 					rotate(360 / n * i,  [0, 0, 1])
-						tooth(R, th, 360 / n + attack, attack, fn, R-3);
+						tooth(R, R-step, th, 360 / n + attack , attack, rare, fn);
 			}
 			cylinder(r = R, h = th, $fn = fn);
 		}
 
 		translate([0, 0, -delta/2])
-			cylinder(r = r, h= h+delta, $fn= fn);
+			cylinder(r = r, h= th+delta, $fn= fn);
 	}
 }
 
 
-module tooth(r, h, segment, attack, fn, r2)
+module tooth(r, r2, h, segment, attack, rare, fn)
 {
+
 	difference()
 	{
-		shape(r, h, segment - attack, -segment, fn);
-		translate([0,0, -delta/2])
+		shape(r, h, rare, (segment - attack), -segment, fn);
+	translate([0,0, -delta/2])
 			difference()
 			{
 				rotate(segment-attack, [0, 0, 1])
-					shape(r+delta, h+delta, segment - attack+delta, -attack, fn);
+					shape(r+delta, h+delta, rare, segment - attack , -attack , fn);
 
 				rotate(segment, [0, 0, 1])
 					scale([1, 2 * r2/(r+r2), 1])
@@ -66,11 +73,11 @@ module tooth(r, h, segment, attack, fn, r2)
 	}
 }
 
-module shape(r, h, segm, tw, fn = 300)
+module shape(r, h, rare, segm, tw, fn = 300)
 {
-	pts = [[0, 0], [r, 0], [r, 2*r], [r * cos(segm), r * sin(segm)]];
-	pth = [[0, 1, 2, 3]];
+	pts = [[0, 0], [0, - r*tan(rare)], [r, 0], [r, 2*r], [r * cos(segm), r * sin(segm)]];
+	pth = [[0, 1, 2, 3, 4]];
 
-	linear_extrude(height = h, center = false, convexity = 16, twist = tw, slices = 100)
+	linear_extrude(height = h, center = false, convexity = 4, twist = tw, slices = fn)
 		polygon(points = pts, pathes = pth, convexity = 4);
 }
