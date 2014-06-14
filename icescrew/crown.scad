@@ -34,7 +34,7 @@ difference()
 //"чистота"
 module crown(r, R, th, n, attack, rare, fn = 300) 
 {
-	step = 3; // макс. глубина пазов для щупа
+	step = 2; // макс. глубина пазов для щупа
 	difference()
 	{
 		intersection()
@@ -56,7 +56,6 @@ module crown(r, R, th, n, attack, rare, fn = 300)
 
 module tooth(r, r2, h, segment, attack, rare, fn)
 {
-
 	difference()
 	{
 		shape(r, h, rare, (segment - attack), -segment, fn);
@@ -64,6 +63,7 @@ module tooth(r, r2, h, segment, attack, rare, fn)
 			difference()
 			{
 				rotate(segment-attack, [0, 0, 1])
+
 					shape(r+delta, h+delta, rare, segment - attack , -attack , fn);
 
 				rotate(segment, [0, 0, 1])
@@ -78,6 +78,6 @@ module shape(r, h, rare, segm, tw, fn = 300)
 	pts = [[0, 0], [0, - r*tan(rare)], [r, 0], [r, 2*r], [r * cos(segm), r * sin(segm)]];
 	pth = [[0, 1, 2, 3, 4]];
 
-	linear_extrude(height = h, center = false, convexity = 4, twist = tw, slices = fn)
+	linear_extrude(height = h, center = false, convexity = 4, twist = tw, slices = fn, $fn=fn)
 		polygon(points = pts, pathes = pth, convexity = 4);
 }
