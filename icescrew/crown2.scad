@@ -1,10 +1,10 @@
-$fn = 100;
+$fn = 50;
 delta = 0.1;
 
 r0 = 3;	// радиус вала
-r = 5;	// внутренний радиус вала
+r = 5;	// внутренний радиус шаблона
 R = 9;	// внешний радиус шаблона
-H = 10; // высота всего шаблона
+H = 10.5; // высота всего шаблона
 h = 2; // вынос втулки над базовой кромкой
 th =6.5; // высота зуба
 n = 4; 	// число зубьев
@@ -18,17 +18,24 @@ crown(r0, r, R, H, h, th, n, attack, da, dh);
 
 module crown(r0, r, R, H, h, th, n, attack, da, dh)
 {
-	intersection()
+	difference()
 	{
 		union()
 		{
-			semiCrown(r, (R+r) /2, th, n, attack, 0, dh);
-			semiCrown((R+r)/2, R+ 2* delta, th, n, attack, da, 0);
+			intersection()
+			{
+				union()
+				{
+					semiCrown(r, (R+r) /2, th, n, attack, 0, dh);
+					semiCrown((R+r)/2, R+ 2* delta, th, n, attack, da, 0);
+				}
+				cylinder (r = R, h = th + dh, $fn = $fn * n);
+			}		
+			body(r0, r, R, H, h, th, n);
 		}
-		cylinder (r = R, h = th + dh, $fn = $fn * n);
+		
+		nuts(55, 0.8, r0 + 2);	// подобрать для другого числа зубов
 	}
-
-	body(r0, r, R, H, h, th, n);
 }
 
 // add -- продлить спираль вперед на такой угол
@@ -45,8 +52,12 @@ module semiCrown(r, R, h, n, attack, add = 0, dh = 0)
 }
 
 module body(r0, r, R, h, dh, th, n)
-{
+{	
+	dx = 0.8;	// смещения гаек м3 в основании
+	dy = 2;
+
 	$fn = $fn * n;
+
 	difference()
 	{
 		union()
@@ -88,10 +99,10 @@ module cover2(r, R, h, n)
 		{
 			cube([R, R, h]);
 			scale([r/R, 1, 1])
-				cylinder(r = R, h = h);
+				cylinder(r = R, h = h, $fn = $fn * n);
 		}
 		translate([0,0, -delta/2])
-			cylinder (r= r, h = h +delta);
+			cylinder (r= r, h = h +delta, $fn = $fn * n);
 	}
 }
 
@@ -176,4 +187,31 @@ module strange(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4,
 
 	polyhedron(points = points, faces = faces, confexity = 4);
 
+}
+
+module nuts(alpha, dx, dy)
+{
+	// нежно вписываем m3 в объем
+	rotate(alpha)
+		translate([0,0,-dx])
+		rotate(90, [0, 1, 0])
+			{
+				translate([0, 0, dy])
+					nutSlot();
+				translate([0, 0, -dy])
+					nutSlot();
+			}
+}
+
+module nutSlot(d = 5.5, m = 3, h = 2.5)
+{
+	th = 10;
+	d2 = d * 2 / sqrt(3);
+
+	cylinder(d = d2, h = h, center = true, $fn = 6);
+	translate([0,0, -th/2])
+		cylinder(d = m, h = 10, $fn = 50);
+
+	translate([d2/4, 0, 0])
+		cube([d2/2+ delta, d, h], true);
 }
