@@ -1,5 +1,8 @@
+delta = 0.1;	
+use <common.scad>
+
 $fn = 50;
-delta = 0.1;
+
 
 r0 = 3;	// радиус вала
 r = 5;	// внутренний радиус шаблона
@@ -187,31 +190,4 @@ module strange(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4,
 
 	polyhedron(points = points, faces = faces, confexity = 4);
 
-}
-
-module nuts(alpha, dx, dy)
-{
-	// нежно вписываем m3 в объем
-	rotate(alpha)
-		translate([0,0,-dx])
-		rotate(90, [0, 1, 0])
-			{
-				translate([0, 0, dy])
-					nutSlot();
-				translate([0, 0, -dy])
-					nutSlot();
-			}
-}
-
-module nutSlot(d = 5.5, m = 3, h = 2.5)
-{
-	th = 10;
-	d2 = d * 2 / sqrt(3);
-
-	cylinder(d = d2, h = h, center = true, $fn = 6);
-	translate([0,0, -th/2])
-		cylinder(d = m, h = 10, $fn = 50);
-
-	translate([d2/4, 0, 0])
-		cube([d2/2+ delta, d, h], true);
 }
