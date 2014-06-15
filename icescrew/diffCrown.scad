@@ -1,10 +1,11 @@
 use <common.scad>
 
 delta = 0.1;
-$fn = 30;
+$fn = 20;
 
 
 r0 = 3;	// радиус вала
+rb = 1.5; // радиус фрезы / щупа
 r = 5;	// внутренний радиус шаблона
 R = 9;	// внешний радиус шаблона
 H = 14; // высота всего шаблона
@@ -16,28 +17,24 @@ da = 5; // угол выноса ближней кромки
 dh = 1; // высота выноса второй кромки
 
 
-crown(r0, r, R, H, h, th, n, attack, da, dh);
+crown(r0, rb, r, R, H, h, th, n, attack, da, dh);
 
 
-module crown(r0, r, R, H, h, th, n, attack, da, dh)
+module crown(r0, rb, r, R, H, h, th, n, attack, da, dh)
 {
-
-	rb = 1.5; // радиус бура
-	
+	// cложное вычисление углов, не спрашивайте как
 	al = 90 - attack;
-
 	dth = th-rb;
 
-	// cложное вычисление углов
 	l = 2 * 3.14 * R / n;
 	l1 = l - rb + dth * tan(attack);
 
 	sq = sqrt(dth * dth + l1 * l1);
 
 	ga = acos(dth / sq);
-	gabe = acos (-rb / sq);									// !!! 
+	gabe = acos (-rb / sq);
 	be = gabe - ga;
-//	echo (gabe, ga, be); // удачно попали в квадранты !
+//	echo (gabe, ga, be); // !!! удачно попали в квадранты !
 
 	d1 = rb / sin(be);
 	d2 = rb / sin(al);
@@ -64,44 +61,46 @@ module crown(r0, r, R, H, h, th, n, attack, da, dh)
 		{
 			for (i = [0: n-1])
 				rotate(360/n * i)
-					tooth(r, R, TH, 360/n+attack, attack, $fn, da, dh);
+					tooth(r, R, TH, 360/n+attack, attack, rb, $fn, da, dh);
 			
 		}
 
 		nuts(42, 3.05, r0 +2);
 	}
 
+	// проверка попадания по высоте
+	/*
 	color ("red")
-		translate([0, -R+delta, -1.5])
+		translate([0, -R-2*delta, -rb])
 			cube([0.1, 0.1, th]);
+	*/
 }
 
-module tooth(r, R, th, angle, attack, n, da, dh)
+module tooth(r, R, th, angle, attack, rb, n, da, dh)
 {
 	// затылок
 	for (i = [0: n])
 		rotate(angle/n * i)
 			translate([0,0, th/n*i])
-				bor(dx = (r*(n-i) + (R + r) /2 * i) / n);
+				bor((r*(n-i) + (R + r) /2 * i) / n, rb);
 
 	// дальняя часть вертикали
 	for (i = [0: n])
 		rotate(attack/n * i)
 			translate([0,0, (th+dh)/n*i])
-				bor(dx = r, h = (R-r) /2);
+				bor(r, rb, (R-r) /2);
 
 	// ближняя часть вертикали
 	for (i = [0: n])
 		rotate((attack+da)/n * i)
 			translate([0,0, th/n*i])
-				bor(dx = (r + R) /2 -delta);
+				bor((r + R) /2 -delta, rb);
 	
 	// горизонталь
 	for (i = [0: n])
 		rotate(attack +(angle - 2* attack)/n * i)
 			translate([0,0, th])	// должно быть + dh, но хватает и так
-				bor(dx = r);
-
+				bor(r, rb);
 }
 
 
@@ -111,7 +110,7 @@ module bor(dx, rb=1.5, h=10)
 	{
 		rotate(90, [0, 1, 0])
 			cylinder(r = rb, h = h);
-		cube([h, 1, 5]);				// просто высекаем лишнее
+		cube([h, 1, 5]);				// просто высекаем лишнее, отследить на больших углах атаки / малых диаметрах
 	}
 }
 
