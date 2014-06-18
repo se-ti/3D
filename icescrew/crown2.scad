@@ -1,7 +1,7 @@
 delta = 0.1;	
 use <common.scad>
 
-$fn = 50;
+$fn = 40;
 
 
 r0 = 3;	// радиус вала
@@ -82,8 +82,10 @@ module step(r, R, h, alpha, beta, n=$fn, dh, extra = 0)
 	union()
 	{	
 		for (i = [0: n-1])
+		{
 			render()
 				main(r, R, h, alpha, beta, n, i, scale);
+		}
 		cover(r, R, h, alpha, beta, n, scale, dh);
 		
 		if (dh > 0)
@@ -147,36 +149,20 @@ module cover(r, R, h, alpha, beta, n, scale, dh = 0)
 	union() 
 	{
 		for (i = [0 : m-1])
-			cov(m0 + vec * i / n, m0 + vec * (i+1) / n, i);
+			cov(m0 + vec * i / n, m0 + vec * (i+1) / n);
 	}
 }
 
 module cov(m0, m1, i)
 {
-	 strange(m1[0][0], m1[0][1], m1[0][2],m1[1][0], m1[1][1], m1[1][2], m1[2][0], m1[2][1], m1[2][2], m1[3][0], m1[3][1], m1[3][2], 
-				m0[0][0], m0[0][1], m0[0][2],m0[1][0], m0[1][1], m0[1][2], m0[2][0], m0[2][1], m0[2][2], m0[3][0], m0[3][1], m0[3][2]);
+	fStrange([m1[0], m1[3], m0[3], m0[0]], [m1[1], m1[2], m0[2], m0[1]]);
 }
 
 module main(r, R, h, al, be, n, i, scale = 1)
 {
-	h0 = h * i / n;
-	h1 = h * (i+1) / n;
-
-	r0 = r * ( n - i + scale* i) / n;
-	r1 = r * (n - i - 1 + scale* (i + 1)) / n;
-
-	R0 = R * ( n - i + scale* i) / n;
-	R1 = R * (n - i - 1 + scale* (i + 1)) / n;
-	
-
-	at0 = al * i / n;
-	at1 = al * (i+1) / n;
-
-	ab0 = (al - be) * i / n;
-	ab1 = (al - be) * (i+1) / n;
-
-	strange(r0*sin(at0), r0*cos(at0), h0, r1*sin(at1), r1*cos(at1), h1, R1*sin(at1), R1*cos(at1), h1, R0*sin(at0), R0*cos(at0),h0,
-				r0*sin(ab0), r0*cos(ab0), 0,	r1*sin(ab1), r1*cos(ab1), 0,	R1*sin(ab1), R1*cos(ab1), 0,	R0*sin(ab0), R0*cos(ab0), 0);
+	fStrange(
+		face0(r, R, h, al, be, i/n,     scale),
+		face0(r, R, h, al, be, (i+1)/n, scale));
 }
 
 // просто многогранник с согласующимися диагоналями, который можно лепить к самому себе без полостей
@@ -188,6 +174,34 @@ module strange(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4,
 	faces = [[0, 1, 2], [0, 2, 3], [0, 4, 5 ], [0, 5, 1], [1, 5, 6], [2, 1, 6], 
 				[2, 6, 3], [3, 6, 7], [0, 3, 7], [0, 7, 4], [5, 4, 6], [4, 7, 6]];
 
-	polyhedron(points = points, faces = faces, confexity = 4);
+	polyhedron(points = points, faces = faces, convexity = 4);
+}
 
+
+// радиус-вектор
+function rVec(r, al, h) = [r*sin(al), r*cos(al), h];
+
+
+function face(r, R, alt, alb, ht, hb) = 
+	[rVec(r, alt, ht), rVec(R, alt, ht), 
+	 rVec(R, alb, hb), rVec(r, alb, hb)];
+
+function face0(r, R, h, al, be, iOn, scale = 1) = 
+	face( r* (1 + (scale - 1) * iOn), 
+			R* (1 + (scale - 1) * iOn), 
+			al * iOn, 
+			(al - be) * iOn, 
+			h * iOn,
+			0);
+
+// просто многогранник с согласующимися диагоналями, который можно лепить к самому себе без полостей
+// f1 и f2 -- массивы из 4 точек r-top R-top R-bot r-bot
+module fStrange(f1, f2)
+{
+	points = [f1[0], f2[0], f2[1], f1[1],
+					f1[3], f2[3], f2[2], f1[2]];
+	faces = [[0, 1, 2], [0, 2, 3], [0, 4, 5 ], [0, 5, 1], [1, 5, 6], [2, 1, 6], 
+				[2, 6, 3], [3, 6, 7], [0, 3, 7], [0, 7, 4], [5, 4, 6], [4, 7, 6]];
+
+	polyhedron(points = points, faces = faces, convexity = 4);
 }
