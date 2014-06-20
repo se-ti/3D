@@ -2,21 +2,55 @@ delta = 0.1;
 $fn = 100;
 
 
-r= 20;
-R = 30;
-r0 = 25 / 2;	// радиус шейки бора 
-h = 35;
+// параметры бормашины: захват д = 20 л = 8, от захвата до режущей кромки -- 32-54 мм, длина режущей кромки -- 6 мм, диаметр ~2,5
+
+
+r= 15;
+R = 20;
+r0 = 20 / 2;	// радиус шейки бора 
+l0 = 8;
+h = 35;			// не обязательно делать на всю высоту
 
 rBolt = 4;	// силовой винт
 rBolt2 = 2; // фиксирующие винты
 
 
-support(r, R, r0, h, rBolt, rBolt2);
+intersection()
+{
+	union ()
+	{
+		support(r, R, r0, h, rBolt, rBolt2);
+		
+		translate([0 /*R + r*/, 0, h+3*delta])
+			head(r, r0, rBolt2);
+	}
+	union()
+	{
+		translate([0,0, h])
+			cube([2*R, l0, 2*h], true);
+		translate([0,0, (h-r0) /2])
+		cube([2*R, 2*R, h-r0], true);
+	}
+}
 
-translate([R + r, 0, 0])
-	head(r, r0, rBolt2);
+bor(h, l0);
 
 
+
+module bor(h, l0)
+{
+
+	l = 32;
+
+	color ("red")
+	translate([0, l0/2, h])
+		rotate(90, [-1, 0, 0])
+		{
+			cylinder(r= 1, h = l);
+			translate([0,0,l])
+				cylinder(d = 2.5, h = 6);
+		}
+}
 
 module head(r, r0, rBolt2)
 {
@@ -25,7 +59,7 @@ module head(r, r0, rBolt2)
 
 	difference()
 	{
-		cylinder(r = r, h = r);
+		cylinder(r = r, h = min(r, r0 * 1.5));
 		rotate(90, [1, 0, 0])
 			translate([0, -2*delta, -r -delta/2])  // 2*delta -- зазор на стяжку
 				translate([0,0, - delta/2])
@@ -53,7 +87,12 @@ module support(r, R, r0, h, rBolt, rBolt2)
 		
 
 		translate([0,0, -delta/2])		// основной винт
-			bolt(rBolt, h-r0, true, rBolt + r0);
+		{
+			cylinder(r = rBolt, h = h - r0 + delta);
+			translate([0, 0, h-r0 - rBolt])
+				cylinder(r = 2*rBolt, h = 2*rBolt);
+		}
+		//	bolt(rBolt, h-r0, true, rBolt + r0);
 
 		translate([offset, 0, -delta/2])
 			bolt(rBolt2, h+delta);
