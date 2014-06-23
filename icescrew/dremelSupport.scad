@@ -26,7 +26,7 @@ intersection()
 	}
 	union()
 	{
-		translate([0,0, h])
+		translate([0, l0, h])
 			cube([2*R, l0, 2*h], true);
 		translate([0,0, (h-r0) /2])
 		cube([2*R, 2*R, h-r0], true);
