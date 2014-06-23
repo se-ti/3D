@@ -49,12 +49,10 @@ union ()
 			cylinder (r=a*SQRT3/3,h=SupportLength,$fn=3); // Основное тело
 
 	cylinder (r=SupportRingDiameter/2,h=SupportLength); // Цилиндр, окружающий отверстие для щупа
-	//cube ([MainAxeHeight])
 	}
 	
 translate ([0,0,-0.01])
 	cylinder (r=ProbeDiameter/2, h=SupportLength+0.02);
-//bearing_inner ( od=ProbeDiameter+4, id=ProbeDiameter, height=SupportLength+0.02 );
 
 
 translate ([-a*SQRT3/3+SupportRingDiameter/3,0,-0.01])
@@ -68,10 +66,6 @@ if ( BracketLength )
 		translate ([-MainAxeHeight-0.01, Offset,SupportLength/2])
 		rotate ([0,90,0])
 			bolt ( blt, h=BaseThickness );
-//			cylinder (r2=blt*1.5/2, r1=blt/2, h=blt/2+0.02 );
-	//	translate ([-MainAxeHeight-0.01, Offset,SupportLength/2])
-		//rotate ([0,90,0])
-			//cylinder (r=blt/2, h=SupportRingDiameter/4+0.02 );
 		}
 
 }
