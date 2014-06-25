@@ -1,7 +1,7 @@
 use <common.scad>
 
 delta = 0.1;
-$fn = 20;
+$fn = 25;
 
 
 r0 = 3;	// радиус вала
@@ -15,12 +15,13 @@ n = 4; 	// число зубьев
 attack = 7; // угол атаки зуба
 da = 5; // угол выноса ближней кромки
 dh = 1; // высота выноса второй кромки
+probeH = 2; // толщина головки щупа
 
 
-crown(r0, rb, r, R, H, h, th, n, attack, da, dh);
+crown(r0, rb, r, R, H, h, th, n, attack, da, dh, probeH);
 
 
-module crown(r0, rb, r, R, H, h, th, n, attack, da, dh)
+module crown(r0, rb, r, R, H, h, th, n, attack, da, dh, probeH)
 {
 	// cложное вычисление углов, не спрашивайте как
 	al = 90 - attack;
@@ -65,36 +66,39 @@ module crown(r0, rb, r, R, H, h, th, n, attack, da, dh)
 			
 		}
 
-		nuts(42, 3.05, r0 +2);
+		nuts(42, 3.05, r0+2, 2*R);	// 2*R вынос с большим запасом
 	}
 
 	// проверка попадания по высоте
-	/*
+/*	
 	color ("red")
 		translate([0, -R-2*delta, -rb])
 			cube([0.1, 0.1, th]);
-	*/
+*/	
 }
 
-module tooth(r, R, th, angle, attack, rb, n, da, dh)
+module tooth(r, R, th, angle, attack, rb, n, da, dh, probeH)
 {
+	// смещаем границу ближней и дальней зон наружу, следим, чтобы щуп всегда влез во внутреннюю щону
+
+	rMid = max(r + (R-r) * 2 /3, r+probeH + 2*delta); // 2*delta -- запас на грязь
 	// затылок
 	for (i = [0: n])
 		rotate(angle/n * i)
 			translate([0,0, th/n*i])
-				bor((r*(n-i) + (R + r) /2 * i) / n, rb);
+				bor((r*(n-i) + rMid * i) / n, rb);
 
 	// дальняя часть вертикали
 	for (i = [0: n])
 		rotate(attack/n * i)
 			translate([0,0, (th+dh)/n*i])
-				bor(r, rb, (R-r) /2);
+				bor(r, rb, rMid - r);  //(R-r)/2
 
 	// ближняя часть вертикали
 	for (i = [0: n])
 		rotate((attack+da)/n * i)
 			translate([0,0, th/n*i])
-				bor((r + R) /2 -delta, rb);
+				bor(rMid -delta, rb);
 	
 	// горизонталь
 	for (i = [0: n])
