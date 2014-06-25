@@ -25,3 +25,32 @@ module nutSlot(d = 5.5, m = 3, h = 2.5, bh = 10)
 		cube([d2/2+ delta, d+delta, h], true);
 }
 
+
+// возвращают вектор: радиус тела шурупа - радиус головки
+function stdScrew(type) = (type == 0 ? [3.62, 6.7] : 
+						 		  (type == 1 ? [4.12, 7.84] : 
+													[4.36, 8.82] )) / 2;
+function screwParam(r) = [r, 2.2 * r];	// до 2.2 для шурупов, до 1.9 для винтов
+function boltParam(r)  = [r, 1.9 * r];	
+
+
+// 3.62 - 6.7
+// 4.12 - 7.84
+// 4.36 - 8.82
+
+// гнездо под шуруп 
+// param -- вектор радиусов тело / головка шурупа
+// h -- высота от кончика до верха головки
+// hHead -- высота выреза над головкой
+module screw(param, h, hHead = -1)
+{			
+	hCone = param[1] < h ? param[1] : h;
+	rCone = param[1] < h ? 0 : param[1] - h; 
+	h2 = hHead > 0 ? hHead : h;
+
+	cylinder(r = param[0], h = h);
+	translate([0, 0, h-hCone])
+		cylinder(r1 = rCone, r2 = param[1], h = hCone);	
+	translate([0, 0 ,h - delta/10])				// delta/10 -- чтобы пересеклись конус и цилиндр
+		cylinder(r = param[1], h = h2 + delta/10);
+}

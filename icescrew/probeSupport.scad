@@ -1,3 +1,5 @@
+use <common.scad>
+
 delta = 0.1;
 $fn = 50;
 
@@ -12,7 +14,7 @@ wall = 1.5;	// толщина стенки после вычитания
 hs = 5;			// толщина опоры под головкой шурупа
 
 //blt = bPar2(2.5); // 2.5 -- радиус тела шурупа
-blt = bPar(0); // тип шурупа: 0 / 1 / 2
+blt = stdScrew(0); // тип шурупа: 0 / 1 / 2
 
 
 
@@ -157,31 +159,7 @@ module basePlate(l, w, h, param)
 module bp2(param, h, offset, dlt=0, hHead)
 {
 	translate([offset, 0, -dlt])
-		bolt(param, h + dlt, hHead);
+		screw(param, h + dlt, hHead);
 	translate([-offset, 0, -dlt])
-		bolt(param, h + dlt, hHead);
-}
-
-
-// возвращают вектор: радиус тела шурупа - радиус головки
-function bPar(type) = (type == 0 ? [3.62, 6.7] : 
-							 (type == 1 ? [4.12, 7.84] : 
-											  [4.36, 8.82] )) / 2;
-function bPar2(r) = [r, 2.2 * r];	// до 2.2 для шурупов, до 1.9 для винтов
-
-
-// 3.62 - 6.7
-// 4.12 - 7.84
-// 4.36 - 8.82
-module bolt(param, h, hHead = -1)
-{			
-	hCone = param[1] < h ? param[1] : h;
-	rCone = param[1] < h ? 0 : param[1] - h; 
-	h2 = hHead > 0 ? hHead : h;
-
-	cylinder(r = param[0], h = h);
-	translate([0, 0, h-hCone])
-		cylinder(r1 = rCone, r2 = param[1], h = hCone);	
-	translate([0, 0 ,h - delta/10])				// delta/10 -- чтобы пересеклись конус и цилиндр
-		cylinder(r = param[1], h = h2 + delta/10);
+		screw(param, h + dlt, hHead);
 }
