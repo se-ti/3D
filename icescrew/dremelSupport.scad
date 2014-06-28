@@ -293,6 +293,14 @@ module dremel(h, l0)
 {
 	l = 32;
 
+	sizes = [
+	[0, 20, 20],
+	[l0, 20, 20],	// шейка
+	[25, 30, 30],
+	[55, 46, 43],
+	[115, 46, 43],
+	[130, 46, 43]];
+
 	color ("red")
 	translate([0, l0/2, h])
 		rotate(90, [-1, 0, 0])
@@ -302,12 +310,12 @@ module dremel(h, l0)
 			translate([0,0,l])
 				cylinder(d = 2.5, h = 6);
 	
-			translate([0,0,-l0])			// шейка
+			translate([0,0,-l0])			
 				cylinder(d = 20, h = l0);
 			translate([0,0, - 25])			// тело за шейкой
 				cylinder(d = 30, h = 25 - l0);
 			translate([0,0, - 55])			// и еще дальше
-				cylinder(d = 36, h = 55 - 25 );
+				cylinder(d = 46, h = 55 - 25 );
 		}
 }
 
