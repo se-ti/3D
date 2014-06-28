@@ -306,8 +306,10 @@ module dremel(h, l0)
 				cylinder(d = 20, h = l0);
 			translate([0,0, - 25])			// тело за шейкой
 				cylinder(d = 30, h = 25 - l0);
+			translate([0,0, - 40])			// и еще дальше
+				cylinder(d2 = 30, d1 = 46, h = 40 - 25 );
 			translate([0,0, - 55])			// и еще дальше
-				cylinder(d = 36, h = 55 - 25 );
+				cylinder( d = 46, h = 55 - 40 );
 		}
 }
 
