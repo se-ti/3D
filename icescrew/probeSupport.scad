@@ -44,7 +44,7 @@ module probeSupport(h, l, r, lSpring, rs, wall, hs, blt)
 				cylinder(r = rc, h = l, $fn = 3);
 		
 //		hole((rc/2 - wall)/sqrt(3) * 2, l); // основная пустота - 6-гранник
-//		hole2(rc/2 - wall, l, delta);			// 						 RepRap logo
+//		repRapLogo(rc/2 - wall, l, delta);			// 						 RepRap logo
 
 		translate([rc-dh, 0, -delta/2])		// щуп
 			cylinder(r = r, h = l + delta);
@@ -122,18 +122,7 @@ module recursiveHole(r, l, wall, p)
 		}
 		else
 			children();
-		hole2(rn, l, delta);
-	}
-}
-
-module hole2(r, l, dlt = 0)
-{
-	translate([0,0, -dlt/2])
-	{
-		cylinder(r = r, h = l + dlt);
-		translate([sqrt(2) * r / 2, 0, (l+dlt)/2])
-			rotate(45)
-				cube([r, r, l+dlt], center = true);
+		repRapLogo(rn, l, delta);
 	}
 }
 

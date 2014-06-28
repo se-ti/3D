@@ -54,3 +54,20 @@ module screw(param, h, hHead = -1)
 	translate([0, 0 ,h - delta/10])				// delta/10 -- чтобы пересеклись конус и цилиндр
 		cylinder(r = param[1], h = h2 + delta/10);
 }
+
+
+
+// печатаемая полость -- логотип repRap
+// r -- радиус базовой окружности
+// l -- длина
+// dlt -- запас по длине для вычитания из других объектов
+module repRapLogo(r, l, dlt = 0)
+{
+	translate([0,0, -dlt/2])
+	{
+		cylinder(r = r, h = l + dlt);
+		translate([sqrt(2) * r / 2, 0, (l+dlt)/2])
+			rotate(45)
+				cube([r, r, l+dlt], center = true);
+	}
+}

@@ -1,51 +1,42 @@
+use <common.scad>
+
 delta = 0.1;
 $fn = 100;
 
 
 // параметры бормашины: захват д = 20 л = 8, от захвата до режущей кромки -- 32-54 мм, длина режущей кромки -- 6 мм, диаметр ~2,5
 
-// размеры по сечениям от передней кромки
-//смещение	      	0	25	55	115	130
-//диаметр	высоте	20	30	46	46	
-//	      ширине		20	30	43	43	
-
-
-
-
 r0 = 20 / 2;	// радиус шейки бора 
 l0 = 8;			// толщина захвата
 level = 35;			// не обязательно делать на всю высоту
+wall = 5; 		// толщина держателей осей
 
-rBolt2 = 2; // фиксирующие винты (m4)
+rBolt = 2; // фиксирующие винты (М4)
 rAxis = 3; // каленая ось вращения
 
 
 depth = 20;	// глубина основания
 
-mbase = 46; // радиус дуги высотной регулировки
+base = 50; // радиус дуги высотной регулировки
 angle = 30;	// угол дуги
 bAngle = 8; // угол смещения
 
+scr = stdScrew(1); // 0, 1, 2
 
 
 
-head(l0, r0, rBolt2, rAxis, mbase, angle, bAngle);
-base(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, depth);
+fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
+
+head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
+
+translate([0, -depth/2-l0/2 - delta, 0])
+!	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
 
 bor(0, l0);
 
-//dx = 3;
-//translate([10, -depth/2 +l0/2 + dx+delta, 0])
-	//slot(4*rAxis, depth, 2*r0 + 2*(rBolt2 + rAxis), rBolt2, 6, l0 + 2*delta, dx);
-
-//translate([-15, -depth/2 +l0/2 + dx+delta, - r0 - rBolt2 - rAxis + 2*rAxis])
-	//slot(4*rAxis, depth, 4* rAxis, rAxis, 6, l0 + 2*delta, dx);
-
-
-
-module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
+module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, scr)
 {
-	sz = size(r0, base, angle, bAngle, rAxis, rBolt, depth);
+	sz = sizes(r0, base, angle, bAngle, rAxis, rBolt, depth);
 
 	w = sz[0]; 
 	h = sz[1]; 
@@ -53,36 +44,61 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
 	dh = sz[3];
 
 
-	wall = 5;
 	bHeight = level - h/2;
-	dx = bHeight;
+	dx = bHeight;				// на сколько опустить вниз слоты? -- до дна
+	dw = base*(1-cos(angle - bAngle)); // сколько отрезать с края
 
+	surfOffset = wall + dp + 2*delta + depth2/2; // смещение до лицевой поверхности
 
-	translate([0, -depth/2-depth2/2 - delta, 0])
+	rHole = (bHeight-wall)/3;
+
+	// центр фиксирующего отверстия
+	dxFix = 2*rBolt + dw;
+	dyFix = dh+base * sin(angle - bAngle);
+
+	hDd = 1; 			// вынос головки болта, чтобы не сильно ослаблял держатель
+	rotate = false; 	// вынести головку на другую опору
+	tune = 0.5;  		// подгон положения шурупов между опорами
+	
+
+	translate([0, 0, -h/2])
 	difference()
 	{
 		union()
 		{
-			translate([0,0, -bHeight/2-h/2])
-				cube ([w, depth2, bHeight], true);
+			translate([-dw/2, wall/2 + depth/2 + delta, -bHeight/2])					// основание
+				cube ([w-dw, depth2 + depth + wall + 2*delta , bHeight], true);
 
-			translate([0, wall + dp + 2*delta + depth2/2, -dx-h/2])
+			translate([0, surfOffset, -dx])	// держатели осей
 			{
-				translate([w/2 - 2*rBolt - base*(1-cos(angle - bAngle)), 0, 0])
-					slot2(h+dx, dx, wall+depth + 2*delta, wall, 4*rBolt);
+				translate([w/2 - dxFix, 0, 0])
+					slot2(dyFix + 2*rBolt + dx, dx, wall+depth + 2*delta, wall, 4*rBolt);
 
 				translate([-w/2 + 2*rAxis, 0, 0])
 					slot2(dh+dx + 2*rAxis, dx, wall+depth + 2*delta, wall, 4*rAxis);
 			}
 		}
 
-		translate([-w/2 + 2*rAxis, -delta/2 - depth/2, -h/2 + dh])
-			rotate(90, [-1, 0, 0])
-				cylinder(r = rAxis, h = 10*depth + delta);
+		translate([-w/2 + 2*rAxis,  surfOffset + delta/2, dh])	// ось
+			rotate(90, [1, 0, 0])
+				cylinder(r = rAxis, h = 2* wall + depth + 3*delta);
 
-		translate([w/2 - 2*rBolt - base*(1-cos(angle - bAngle)), -delta/2 - depth/2, h/2 -2*rBolt])
-			rotate(90, [-1, 0, 0])
-				cylinder(r = rBolt, h = 10*depth + delta);
+		translate([w/2 - dxFix, surfOffset +delta/2 + (rotate ? 0 : hDd),  dyFix ])	// фиксирующий болт
+			rotate(90, [1, 0, 0])
+				rotate(30)
+					bolt(rBolt, 2* wall + depth + 3*delta + hDd, rotate);
+
+		// крепление к основанию
+		translate([-dw/2, depth/2+delta + tune/2, -bHeight-delta])
+			screws(scr, bHeight/2+delta, bHeight, w-dw, depth2 + depth + 2*delta+tune);	
+
+
+		// сверлим полости
+		for(i = [-1: 1])
+			translate([i * (2*rHole + wall/2), surfOffset, -bHeight/2 - wall/3])
+				rotate(90, [1, 0 ,0])
+					rotate(90)
+						repRapLogo(rHole, depth2 + depth + wall + 2*delta, delta);
 	}
 
 //	color("red")
@@ -91,55 +107,59 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
 
 }
 
+module screws(scr, scrH, H, l, w)
+{
+	dr = 1.2*scr[1];
+	for (i=[-1, 1], j = [-1, 1])
+		translate([ i *(l/2 - dr), j * (w/2 - dr), 0])
+			screw(scr, scrH, H);
+}
 
+
+module slot(wall, width, height, base, l)
+{
+	slot2(height, height + base, l + 2*wall, wall, width);
+}
 
 module slot2(H, h, L, l, w)
 {
-	rotate(180)
-	translate([-w/2, 0, 0])
-	{	
-		cube([w, l, H]);
-		cube([w, L, h]);
-		translate([0,L,0])
-			cube([w, l, H]);
-	}
-}
-
-module slot(l, w, h, r, dh, wdt, dx)
-{
+	translate([-w/2, -L-l, 0])
 	difference()
-	{
-		cube([l, w, h], true);
-		
-		translate([0, w/2-wdt/2 - dx, h/2-(h-dh) /2 + delta/2])
-			cube([l + delta, wdt, h-dh + delta], true);
-
-		rotate(90, [1,0,0])
-			translate([0, +h/2 -2*r, -delta/2 - w/2])
-				cylinder(r = r, h = w+delta);
+	{	
+		union()
+		{
+		cube([w, L+l, H-w/2]);
+		translate([w/2, 0, H - w/2])
+		rotate(90, [-1,0,0])
+			cylinder(d = w, h = L+l);
+		}
+	
+		translate([-delta/2, l, h])
+			cube([w+delta, L-l, H-h+delta]);
 	}
 }
 
 
-function size(r0, base, angle, bAngle, rAxis, rBolt, depth ) = 
+function sizes(r0, base, angle, bAngle, rAxis, rBolt, depth ) = 
 	[
 		max(2*(r0 + 2*rAxis + 2*rBolt), base + 2 * (rAxis + rBolt)), // длина
-      max(2*(r0 + rBolt + rAxis), 4*rBolt + base*(sin(bAngle) + sin(angle-bAngle))),// высота
+      max(2*(r0 + rBolt + rAxis), max(base * sin(bAngle) + 2*rBolt, 2*rAxis) + 2*rBolt+ base*sin(angle-bAngle)),// высота
 		max(depth, 4*rBolt),							// толщина
-		base * sin(bAngle) + 2*rBolt				// смещение оси вверх 
+		max(base * sin(bAngle) + 2*rBolt, 2*rAxis)				// смещение оси вверх 
 	];
 
 
-module head(l, r0, rBolt2, rAxis, base, angle, bAngle)
+module head(l, r0, rBolt, rAxis, base, angle, bAngle)
 {
-	sz = size(r0, base, angle, bAngle, rAxis, rBolt2, l);
+	sz = sizes(r0, base, angle, bAngle, rAxis, rBolt, l);
 
 	w = sz[0]; 
 	h = sz[1]; 
 	dp = sz[2];
 	dh = sz[3];
 
-	offset = r0 + 2*rBolt2;
+	offset = r0 + 2*rBolt;
+	dw = base*(1-min(cos(angle - bAngle), cos(bAngle)));
 
 	difference()
 	{
@@ -151,12 +171,21 @@ module head(l, r0, rBolt2, rAxis, base, angle, bAngle)
 			translate([0, 0, -dp/2 -delta/2])  
 				cylinder(r = r0, h = dp + delta);
 
-		translate([-offset, 0, -h/2 -delta/2])
-			bolt(rBolt2, h+ delta);
+		translate([-offset, 0, -h/2 -delta/2])	// стяжка
+			bolt(rBolt, h+ delta);
+		translate([max(offset, w/2 - 5*rBolt - dw ), 0, -h/2 -delta/2])	// регулировка
+			bolt(rBolt, h+ delta);
 
 		translate([-w/2 + 2*rAxis, dp /2 + delta/2, -h/2 + dh])
 			rotate(90, [1, 0, 0])				
-				tuner(base, rBolt2, rAxis, dp + delta, angle, bAngle);
+				tuner(base, rBolt, rAxis, dp + delta, angle, bAngle);
+
+		for (i =[1, -1], j = [1, -1])
+			assign(dr = (i == 1) ? rBolt : rAxis, 
+					 rot = 90 * (1-i) + 45 *(1-i*j))		// страшная формула для подбора углов
+				translate([i * (w/2-dr), 0 , j*(h/2 - dr)])
+					rotate(rot , [0, 1, 0])
+						corner4(2 * dr, dp + delta);
 	}
 }
 
@@ -167,6 +196,19 @@ module tuner(r, rBolt, rAxis, h, angle, bAngle)
 	{
 		cylinder(r= rAxis, h = h);
 		sector(r-rBolt, r+rBolt, h, angle);
+	}
+}
+
+
+module corner4(r, h)
+{
+	difference()
+	{
+		translate(-delta/2, 0, -delta/2)
+			cube([r+delta, h, r+delta], true);
+		translate([-r/2, -h/2-delta/2, -r/2])
+			rotate(90, [-1, 0, 0])
+				cylinder(r = r, h = h+delta);		
 	}
 }
 
@@ -205,6 +247,11 @@ module sector(r, R, h, angle)
 }
 
 
+// размеры по сечениям от передней кромки
+//смещение	      	0	25	55	115	130
+//диаметр	высоте	20	30	46	46	
+//	      ширине		20	30	43	43	
+
 module bor(h, l0)
 {
 	l = 32;
@@ -213,7 +260,7 @@ module bor(h, l0)
 	translate([0, l0/2, h])
 		rotate(90, [-1, 0, 0])
 		{
-			//  бор и головка
+			//  фреза и ось
 			cylinder(r= 1, h = l);
 			translate([0,0,l])
 				cylinder(d = 2.5, h = 6);
@@ -222,37 +269,9 @@ module bor(h, l0)
 				cylinder(d = 20, h = l0);
 			translate([0,0, - 25])			// тело за шейкой
 				cylinder(d = 30, h = 25 - l0);
-			translate([0,0, - 55])			// тело за шейкой
+			translate([0,0, - 55])			// и еще дальше
 				cylinder(d = 36, h = 55 - 25 );
 		}
-}
-
-module support(r, R, r0, h, rBolt, rBolt2)
-{
-	offset = (r0 + r)/2 ;
-
-	difference()
-	{
-		cylinder(r1 = R, r2 = r, h = h);
-		translate([0, 0, h])
-			rotate(90, [1, 0, 0])
-				translate([0, 0, -R])
-					cylinder(r = r0, h = 2*R);
-		
-
-		translate([0,0, -delta/2])		// основной винт
-		{
-			cylinder(r = rBolt, h = h - r0 + delta);
-			translate([0, 0, h-r0 - rBolt])
-				cylinder(r = 2*rBolt, h = 2*rBolt);
-		}
-		//	bolt(rBolt, h-r0, true, rBolt + r0);
-
-		translate([offset, 0, -delta/2])
-			bolt(rBolt2, h+delta);
-		translate([-offset, 0, -delta/2])
-			bolt(rBolt2, h+delta);
-	}
 }
 
 module bolt(r, h, rot = false, head = -1)
