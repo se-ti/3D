@@ -15,7 +15,7 @@ r= 15;
 R = 20;
 r0 = 20 / 2;	// радиус шейки бора 
 l0 = 8;			// толщина захвата
-h = 35;			// не обязательно делать на всю высоту
+level = 35;			// не обязательно делать на всю высоту
 
 rBolt = 4;	// силовой винт
 rBolt2 = 2; // фиксирующие винты
@@ -32,19 +32,19 @@ dh = 5;
 
 
 mbase = 46;
-//head(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, dh);
-base(mbase, depth, r0, rBolt2, rAxis, angle, bAngle, dh);
+head(l0, r0, rBolt2, rAxis, mbase, angle, bAngle);
+base(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, depth);
 
 
-dx = 3;
-translate([10, -depth/2 +l0/2 + dx+delta, 0])
-	slot(4*rAxis, depth, 2*r0 + 2*(rBolt2 + rAxis), rBolt2, 6, l0 + 2*delta, dx);
+//dx = 3;
+//translate([10, -depth/2 +l0/2 + dx+delta, 0])
+	//slot(4*rAxis, depth, 2*r0 + 2*(rBolt2 + rAxis), rBolt2, 6, l0 + 2*delta, dx);
 
 //translate([-15, -depth/2 +l0/2 + dx+delta, - r0 - rBolt2 - rAxis + 2*rAxis])
 	//slot(4*rAxis, depth, 4* rAxis, rAxis, 6, l0 + 2*delta, dx);
 
 
-slot2(30, 10, 50, 12, 16);
+//slot2(30, 10, 50, 12, 16);
 
 
 
@@ -53,29 +53,48 @@ bor(h, l0);
 
 
 
-module base(mBase, depth, r0, rBolt, rAxis, angle, bAngle, dh)
+module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
 {
-/*
-	sz = size(r0, base, angle, bAngle, rAxis, rBolt2, l);
 
-	offset = r0 + 2*rBolt2;
+	sz = size(r0, base, angle, bAngle, rAxis, rBolt, depth);
+
+	//offset = r0 + 2*rBolt2;
 	h = sz[1]; //(r0 + rBolt2 + rAxis) * 2;
 	w = sz[0]; //max(2*r, base + 2*(rBolt2+ rAxis));
 	dp = sz[2];
 	dh = sz[3];
 
-*/
-	translate([0, -l0-depth/2, 0])
+
+	wall = 5;
+	bHeight = level - h/2;
+	dx = bHeight;
+
+
+	translate([0, -depth/2-depth2/2 - delta, 0])
 	difference()
 	{
-		cube ([mBase + 2*(rBolt + rAxis), depth, 2*(r0 + rBolt + rAxis)], true);
-		translate([-mBase/2, -delta/2 - depth/2, -mBase/2 * sin(angle)])
-			rotate(90, [-1, 0, 0])
-				cylinder(r = rAxis, h = depth + delta);
+		union()
+		{
+			translate([0,0, -bHeight/2-h/2])
+				cube ([w, depth2, bHeight], true);
 
-		translate([mBase/2 - mBase*(1- cos(angle-bAngle)), -delta/2 - depth/2, mBase/2 * sin(angle-bAngle)] + dh)
+			translate([0, wall + dp + 2*delta + depth2/2, -dx-h/2])
+			{
+				translate([w/2 - 2*rBolt - base*(1-cos(angle - bAngle)), 0, 0])
+					slot2(h+dx, dx, wall+depth + 2*delta, wall, 4*rBolt);
+
+				translate([-w/2 + 2*rAxis, 0, 0])
+					slot2(dh+dx + 2*rAxis, dx, wall+depth + 2*delta, wall, 4*rAxis);
+			}
+		}
+
+		translate([-w/2 + 2*rAxis, -delta/2 - depth/2, -h/2 + dh])
 			rotate(90, [-1, 0, 0])
-				cylinder(r = rBolt, h = depth + delta);
+				cylinder(r = rAxis, h = 10*depth + delta);
+
+		translate([w/2 - 2*rBolt - base*(1-cos(angle - bAngle)), -delta/2 - depth/2, h/2 -2*rBolt])
+			rotate(90, [-1, 0, 0])
+				cylinder(r = rBolt, h = 10*depth + delta);
 	}
 
 	color("red")
@@ -93,6 +112,8 @@ module slot2(H, h, L, l, w)
 	{	
 		cube([w, l, H]);
 		cube([w, L, h]);
+		translate([0,L,0])
+			cube([w, l, H]);
 	}
 }
 
