@@ -4,8 +4,6 @@ delta = 0.1;
 $fn = 100;
 
 
-// параметры бормашины: захват д = 20 л = 8, от захвата до режущей кромки -- 32-54 мм, длина режущей кромки -- 6 мм, диаметр ~2,5
-
 r0 = 20 / 2;	// радиус шейки бора 
 l0 = 8;			// толщина захвата
 level = 35;			// не обязательно делать на всю высоту
@@ -23,9 +21,9 @@ bAngle = 8; // угол смещения
 
 scr = stdScrew(1); // 0, 1, 2
 
-
-
 fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
+
+
 
 head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
 
@@ -33,10 +31,6 @@ translate([0, -depth/2-l0/2 - delta, 0])
 	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
 
 dremel(0, l0);
-
-
-//counterForce(10,20, 40);
-
 
 
 
@@ -48,7 +42,6 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 	h = sz[1]; 
 	dp = sz[2];
 	dh = sz[3];
-
 
 	bHeight = level - h/2;
 	dx = bHeight;				// на сколько опустить вниз слоты? -- до дна
@@ -107,9 +100,8 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 		// сверлим полости
 		for(i = [-1: 1])
 			translate([i * (2*rHole + wall)- wall/4, surfOffset, -bHeight/2 - wall/3])
-				rotate(90, [1, 0 ,0])
-					rotate(180)
-						repRapLogo(rHole, totalDepth, delta);
+				rotate([90, 180 ,0])
+					repRapLogo(rHole, totalDepth, delta);
 
 		// продольная полость
 		translate([w/2 - dw, depth/2 + delta, -bHeight/2 - wall/3])
@@ -125,9 +117,9 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 module screws(scr, scrH, H, l, w)
 {
-	dr = 1.2*scr[1];					//  подобрали отступ от кромок
+	dr = 1.2 * scr[1];					//  подобрали отступ от кромок
 	for (i=[-1, 1], j = [-1, 1])
-		translate([ i *(l/2 - dr), j * (w/2 - dr), 0])
+		translate([i * (l/2 - dr), j * (w/2 - dr), 0])
 			screw(scr, scrH, H);
 }
 
@@ -154,7 +146,7 @@ module slot(height, baseHeight, wall, l, width, rare = false, left = false, righ
 
 module buttress(depth, width, height, inv = false)
 {
-	linear_extrude(height = height , center = false, convexity = 2, scale= inv ? [0,1] : [1, 0])
+	linear_extrude(height = height , center = false, convexity = 2, scale= inv ? [0, 1] : [1, 0])
 		square([width, depth]);
 }
 
@@ -283,6 +275,8 @@ module sector(r, R, h, angle)
 
 }
 
+// параметры бормашины: захват д = 20 л = 8, от захвата до режущей кромки -- 32-54 мм, длина режущей кромки -- 6 мм, диаметр ~2,5
+
 // размеры по сечениям от передней кромки
 //смещение	      	0	25	55	115	130
 //диаметр	высоте	20	30	46	46	
@@ -306,7 +300,8 @@ module dremel(h, l0)
 			for (i = [1: len(sizes) -1])
 			{
 				translate([0, 0, -sizes[i][0]])
-					cylinder(d1 = sizes[i][1], 
+					scale([sizes[i][2]/ sizes[i][1], 1, 1])
+						cylinder(d1 = sizes[i][1], 
 								d2 = sizes[i - (sizes[i][3] ? 1 : 0)][1], 
 								h = sizes[i][0] - sizes[i-1][0]);
 			}	
@@ -315,8 +310,9 @@ module dremel(h, l0)
 module bolt(r, h, rot = false, head = -1)
 {
 	h2 = head > 0 ? head : 1.5*r;
-	rHead = r * 1.9; 				// проверить!!!
+	rHead = r * 1.91 + delta; 				// проверить!!! 
 
+//	echo (rHead * 2);
 	cylinder(r = r, h = h);
 	translate([0,0, rot ? h - 1.5*r : 0])
 		cylinder(r = rHead, h = h2, $fn = 6);
