@@ -18,8 +18,8 @@ rAxis = 3; // каленая ось вращения
 depth = 20;	// глубина основания
 
 base = 50; // радиус дуги высотной регулировки
-angle = 30;	// угол дуги
-bAngle = 8; // угол смещения
+angle = 20;	// угол дуги
+bAngle = 5; // угол смещения
 
 scr = stdScrew(1); // 0, 1, 2
 
@@ -57,7 +57,7 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 	dyFix = dh+base * sin(angle - bAngle);
 
 	hDd = 1; 			// вынос головки болта, чтобы не сильно ослаблял держатель
-	rotate = false; 	// вынести головку на другую опору
+	rotate = true; 	// вынести головку на другую опору
 	tune = 0.5;  		// подгон положения шурупов между опорами
 	
 
@@ -85,7 +85,7 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 		translate([w/2 - dxFix, surfOffset +delta/2 + (rotate ? 0 : hDd),  dyFix ])	// фиксирующий болт
 			rotate(90, [1, 0, 0])
-				rotate(30)
+//				rotate(30)
 					bolt(rBolt, 2* wall + depth + 3*delta + hDd, rotate);
 
 		// крепление к основанию
@@ -95,10 +95,15 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 		// сверлим полости
 		for(i = [-1: 1])
-			translate([i * (2*rHole + wall/2), surfOffset, -bHeight/2 - wall/3])
+			translate([i * (2*rHole + wall), surfOffset, -bHeight/2 - wall/3])
 				rotate(90, [1, 0 ,0])
-					rotate(90)
+					rotate(180)
 						repRapLogo(rHole, depth2 + depth + wall + 2*delta, delta);
+
+		// продольная полость
+		translate([w/2 - dw, depth/2 + delta, -bHeight/2 - wall/3])
+			rotate(90, [0, -1, 0])
+				repRapLogo(rHole, w-dw, delta);
 	}
 
 //	color("red")
@@ -109,7 +114,7 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 module screws(scr, scrH, H, l, w)
 {
-	dr = 1.2*scr[1];
+	dr = 1.2*scr[1];					//  подобрали отступ от кромок
 	for (i=[-1, 1], j = [-1, 1])
 		translate([ i *(l/2 - dr), j * (w/2 - dr), 0])
 			screw(scr, scrH, H);
