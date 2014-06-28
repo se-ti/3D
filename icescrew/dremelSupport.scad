@@ -18,8 +18,8 @@ rAxis = 3; // каленая ось вращения
 depth = 20;	// глубина основания
 
 base = 50; // радиус дуги высотной регулировки
-angle = 20;	// угол дуги
-bAngle = 5; // угол смещения
+angle = 30;	// угол дуги
+bAngle = 8; // угол смещения
 
 scr = stdScrew(1); // 0, 1, 2
 
@@ -32,7 +32,12 @@ head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
 translate([0, -depth/2-l0/2 - delta, 0])
 	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
 
-bor(0, l0);
+dremel(0, l0);
+
+
+//counterForce(10,20, 40);
+
+
 
 
 module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, scr)
@@ -68,24 +73,28 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 	{
 		union()
 		{
-			translate([-dw/2, wall/2 + depth/2 + delta, -bHeight/2])					// основание
+			// основание
+			translate([-dw/2, wall/2 + depth/2 + delta, -bHeight/2])	
 				cube ([w-dw, totalDepth , bHeight], true);
 
-			translate([0, surfOffset, -dx])	// держатели осей
+			// держатели осей
+			translate([0, surfOffset, -dx])
 			{
 				translate([w/2 - dxFix, 0, 0])
-					slot(dyFix + 2*rBolt + dx, dx, wall, depth + 2*delta, 2*rBolt + 2*rAxis);
+					slot(dyFix + rBolt + rAxis + dx, dx, wall, depth + 2*delta, 2*rBolt + 2*rAxis, true, right = true);
 
 				translate([-w/2 + 2*rAxis, 0, 0])
-					slot(dh    + 2*rAxis + dx, dx, wall, depth + 2*delta, 4*rAxis);
+					slot(dh    + 2*rAxis + dx, dx, wall, depth + 2*delta, 4*rAxis, false, true);
 			}
 		}
 
-		translate([-w/2 + 2*rAxis,  surfOffset + delta/2, dh])	// ось
+		// ось
+		translate([-w/2 + 2*rAxis,  surfOffset + delta/2, dh])
 			rotate(90, [1, 0, 0])
 				cylinder(r = rAxis, h = 2* wall + depth + 3*delta);
 
-		translate([w/2 - dxFix, surfOffset +delta/2 + (rotate ? 0 : hDd),  dyFix ])	// фиксирующий болт
+		// фиксирующий болт
+		translate([w/2 - dxFix, surfOffset +delta/2 + (rotate ? 0 : hDd),  dyFix ])
 			rotate(90, [1, 0, 0])
 //				rotate(30)
 					bolt(rBolt, 2* wall + depth + 3*delta + hDd, rotate);
@@ -97,7 +106,7 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 		// сверлим полости
 		for(i = [-1: 1])
-			translate([i * (2*rHole + wall)- 0*wall/3, surfOffset, -bHeight/2 - wall/3])
+			translate([i * (2*rHole + wall)- wall/4, surfOffset, -bHeight/2 - wall/3])
 				rotate(90, [1, 0 ,0])
 					rotate(180)
 						repRapLogo(rHole, totalDepth, delta);
@@ -122,9 +131,31 @@ module screws(scr, scrH, H, l, w)
 			screw(scr, scrH, H);
 }
 
-module slot(height, baseHeight, wall, l, width)
+module slot(height, baseHeight, wall, l, width, rare = false, left = false, right = false)
 {
 	slot2(height, baseHeight, l + 2*wall, l, width);
+
+	if (rare)
+		rotate(180)
+			translate([-width/2, 2*wall + l, baseHeight])			
+				buttress(wall, width, height - baseHeight - width);
+	if (left)
+	{
+		translate([0, -2*wall - l, baseHeight])			
+				buttress(wall, 1.5*width, height - baseHeight, true);
+		translate([0, -wall, baseHeight])			
+				buttress(wall, 1.5*width, height - baseHeight, true);
+	}
+	if (right)
+		rotate(180)
+			translate([wall, 0, baseHeight])			
+				buttress(wall, width, height - baseHeight - width, true);
+}
+
+module buttress(depth, width, height, inv = false)
+{
+	linear_extrude(height = height , center = false, convexity = 2, scale= inv ? [0,1] : [1, 0])
+		square([width, depth]);
 }
 
 module slot2(H, h, L, l, w)
@@ -258,7 +289,7 @@ module sector(r, R, h, angle)
 //диаметр	высоте	20	30	46	46	
 //	      ширине		20	30	43	43	
 
-module bor(h, l0)
+module dremel(h, l0)
 {
 	l = 32;
 
