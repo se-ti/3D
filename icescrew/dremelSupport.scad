@@ -14,7 +14,7 @@ $fn = 100;
 r= 15;
 R = 20;
 r0 = 20 / 2;	// радиус шейки бора 
-l0 = 8;
+l0 = 8;			// толщина захвата
 h = 35;			// не обязательно делать на всю высоту
 
 rBolt = 4;	// силовой винт
@@ -25,65 +25,46 @@ rAxis = 3; // каленая ось вращения
 
 depth = 20;
 
-
-
-mbase = 42;
-head(r0 + 4*rBolt2, l0, r0, rBolt2, rAxis, mbase);
-base(mbase, depth, r0, rBolt2, rAxis);
-
+angle = 30;
+bAngle = 8;
+dh = 5;
 
 
 
+mbase = 46;
+//head(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, dh);
+base(mbase, depth, r0, rBolt2, rAxis, angle, bAngle, dh);
 
-/*
-intersection()
-{
-	union ()
-	{
-		support(r, R, r0, h, rBolt, rBolt2);
-		
-		translate([ 0, 0, h+3*delta])
-			head(r, r0, rBolt2);
-	}
-	union()
-	{
-		translate([0, l0, h])
-			cube([2*R, l0, 2*h], true);
-		translate([0,0, (h-r0) /2])
-		cube([2*R, 2*R, h-r0], true);
-	}
-}*/
+
+dx = 3;
+translate([10, -depth/2 +l0/2 + dx+delta, 0])
+	slot(4*rAxis, depth, 2*r0 + 2*(rBolt2 + rAxis), rBolt2, 6, l0 + 2*delta, dx);
+
+//translate([-15, -depth/2 +l0/2 + dx+delta, - r0 - rBolt2 - rAxis + 2*rAxis])
+	//slot(4*rAxis, depth, 4* rAxis, rAxis, 6, l0 + 2*delta, dx);
+
+
+slot2(30, 10, 50, 12, 16);
+
+
 
 bor(h, l0);
 
 
 
-module bor(h, l0)
+
+module base(mBase, depth, r0, rBolt, rAxis, angle, bAngle, dh)
 {
+/*
+	sz = size(r0, base, angle, bAngle, rAxis, rBolt2, l);
 
-	l = 32;
+	offset = r0 + 2*rBolt2;
+	h = sz[1]; //(r0 + rBolt2 + rAxis) * 2;
+	w = sz[0]; //max(2*r, base + 2*(rBolt2+ rAxis));
+	dp = sz[2];
+	dh = sz[3];
 
-	color ("red")
-	translate([0, l0/2, h])
-		rotate(90, [-1, 0, 0])
-		{
-			//  бор и головка
-			cylinder(r= 1, h = l);
-			translate([0,0,l])
-				cylinder(d = 2.5, h = 6);
-	
-			translate([0,0,-l0])			// шейка
-				cylinder(d = 20, h = l0);
-			translate([0,0, - 25])			// тело за шейкой
-				cylinder(d = 30, h = 25 - l0);
-			translate([0,0, - 55])			// тело за шейкой
-				cylinder(d = 36, h = 55 - 25 );
-		}
-}
-
-module base(mBase, depth, r0, rBolt, rAxis)
-{
-	angle = 30;
+*/
 	translate([0, -l0-depth/2, 0])
 	difference()
 	{
@@ -92,7 +73,7 @@ module base(mBase, depth, r0, rBolt, rAxis)
 			rotate(90, [-1, 0, 0])
 				cylinder(r = rAxis, h = depth + delta);
 
-		translate([mBase/2 - mBase*(1- cos(angle)), -delta/2 - depth/2, mBase/2 * sin(angle)])
+		translate([mBase/2 - mBase*(1- cos(angle-bAngle)), -delta/2 - depth/2, mBase/2 * sin(angle-bAngle)] + dh)
 			rotate(90, [-1, 0, 0])
 				cylinder(r = rBolt, h = depth + delta);
 	}
@@ -103,40 +84,82 @@ module base(mBase, depth, r0, rBolt, rAxis)
 
 }
 
-module head(r, l, r0, rBolt2, rAxis, base)
+
+
+module slot2(H, h, L, l, w)
 {
-	angle = 30;
-	rAxis = 3;
+	rotate(180)
+	translate([-w/2, 0, 0])
+	{	
+		cube([w, l, H]);
+		cube([w, L, h]);
+	}
+}
 
-	offset = r0 + 2*rBolt2;
-	h = (r0 + rBolt2 + rAxis) * 2;
-	w = max(2*r, base + 2*(rBolt2+ rAxis));
-
+module slot(l, w, h, r, dh, wdt, dx)
+{
 	difference()
 	{
-		cube([w, l, h], true);
-		translate([-w/4 + delta/2, 0, 0])
-			cube([w/2+ delta, l+ delta, 2*delta], true);	// 2*delta -- зазор на стяжку
+		cube([l, w, h], true);
+		
+		translate([0, w/2-wdt/2 - dx, h/2-(h-dh) /2 + delta/2])
+			cube([l + delta, wdt, h-dh + delta], true);
 
-		rotate(90, [1, 0, 0])
-			translate([0, 0, -r -delta/2])  
-				translate([0,0, - delta/2])
-					cylinder(r = r0, h = 2*r + delta);
-
-		translate([-offset, 0, -h/2 -delta/2])
-			bolt(rBolt2, h+ delta);
-
-		translate([-base/2, l0 /2 + delta/2, -r0])
-			rotate(90, [1, 0, 0])
-				tuner(base, rBolt2, rAxis, l0 + delta, angle);
+		rotate(90, [1,0,0])
+			translate([0, +h/2 -2*r, -delta/2 - w/2])
+				cylinder(r = r, h = w+delta);
 	}
 }
 
 
-module tuner(r, rBolt, rAxis, h, angle)
+function size(r0, base, angle, bAngle, rAxis, rBolt, depth ) = 
+	[
+		max(2*(r0 + 2*rAxis + 2*rBolt), base + 2 * (rAxis + rBolt)), // длина
+      max(2*(r0 + rBolt + rAxis), 4*rBolt + base*(sin(bAngle) + sin(angle-bAngle))),// высота
+		max(depth, 4*rBolt),		// толщина
+		base * sin(bAngle) + 2*rBolt
+	];
+
+
+module head(l, r0, rBolt2, rAxis, base, angle, bAngle)
 {
-	cylinder(r= rAxis, h = h);
-	sector(r-rBolt, r+rBolt, h, angle);
+	sz = size(r0, base, angle, bAngle, rAxis, rBolt2, l);
+
+	offset = r0 + 2*rBolt2;
+	h = sz[1]; //(r0 + rBolt2 + rAxis) * 2;
+	w = sz[0]; //max(2*r, base + 2*(rBolt2+ rAxis));
+	dp = sz[2];
+	dh = sz[3];
+
+
+
+	difference()
+	{
+		cube([w, dp, h], true);
+		translate([-w/4 + delta/2, 0, 0])
+			cube([w/2+ delta, dp + delta, 2*delta], true);	// 2*delta -- зазор на стяжку
+
+		rotate(90, [1, 0, 0])
+			translate([0, 0, -dp/2 -delta/2])  
+				cylinder(r = r0, h = dp + delta);
+
+		translate([-offset, 0, -h/2 -delta/2])
+			bolt(rBolt2, h+ delta);
+
+		translate([-w/2 + 2*rAxis, dp /2 + delta/2, -h/2 + dh])
+			rotate(90, [1, 0, 0])				
+				tuner(base, rBolt2, rAxis, dp + delta, angle, bAngle);
+	}
+}
+
+
+module tuner(r, rBolt, rAxis, h, angle, bAngle)
+{
+	rotate(-bAngle)
+	{
+		cylinder(r= rAxis, h = h);
+		sector(r-rBolt, r+rBolt, h, angle);
+	}
 }
 
 module sector(r, R, h, angle)
@@ -173,6 +196,28 @@ module sector(r, R, h, angle)
 
 }
 
+
+module bor(h, l0)
+{
+	l = 32;
+
+	color ("red")
+	translate([0, l0/2, h])
+		rotate(90, [-1, 0, 0])
+		{
+			//  бор и головка
+			cylinder(r= 1, h = l);
+			translate([0,0,l])
+				cylinder(d = 2.5, h = 6);
+	
+			translate([0,0,-l0])			// шейка
+				cylinder(d = 20, h = l0);
+			translate([0,0, - 25])			// тело за шейкой
+				cylinder(d = 30, h = 25 - l0);
+			translate([0,0, - 55])			// тело за шейкой
+				cylinder(d = 36, h = 55 - 25 );
+		}
+}
 
 module support(r, R, r0, h, rBolt, rBolt2)
 {
