@@ -30,9 +30,10 @@ fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
 head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
 
 translate([0, -depth/2-l0/2 - delta, 0])
-!	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
+	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
 
 bor(0, l0);
+
 
 module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, scr)
 {
@@ -46,14 +47,15 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 	bHeight = level - h/2;
 	dx = bHeight;				// на сколько опустить вниз слоты? -- до дна
-	dw = base*(1-cos(angle - bAngle)); // сколько отрезать с края
+	dw = base*(1-cos(angle - bAngle)) - (rAxis - rBolt); // сколько отрезать с края
 
 	surfOffset = wall + dp + 2*delta + depth2/2; // смещение до лицевой поверхности
+	totalDepth = depth2 + depth + wall + 2*delta;
 
 	rHole = (bHeight-wall)/3;
 
 	// центр фиксирующего отверстия
-	dxFix = 2*rBolt + dw;
+	dxFix = rAxis + rBolt + dw ;
 	dyFix = dh+base * sin(angle - bAngle);
 
 	hDd = 1; 			// вынос головки болта, чтобы не сильно ослаблял держатель
@@ -67,15 +69,15 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 		union()
 		{
 			translate([-dw/2, wall/2 + depth/2 + delta, -bHeight/2])					// основание
-				cube ([w-dw, depth2 + depth + wall + 2*delta , bHeight], true);
+				cube ([w-dw, totalDepth , bHeight], true);
 
 			translate([0, surfOffset, -dx])	// держатели осей
 			{
 				translate([w/2 - dxFix, 0, 0])
-					slot2(dyFix + 2*rBolt + dx, dx, wall+depth + 2*delta, wall, 4*rBolt);
+					slot(dyFix + 2*rBolt + dx, dx, wall, depth + 2*delta, 2*rBolt + 2*rAxis);
 
 				translate([-w/2 + 2*rAxis, 0, 0])
-					slot2(dh+dx + 2*rAxis, dx, wall+depth + 2*delta, wall, 4*rAxis);
+					slot(dh    + 2*rAxis + dx, dx, wall, depth + 2*delta, 4*rAxis);
 			}
 		}
 
@@ -90,15 +92,15 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 
 		// крепление к основанию
 		translate([-dw/2, depth/2+delta + tune/2, -bHeight-delta])
-			screws(scr, bHeight/2+delta, bHeight, w-dw, depth2 + depth + 2*delta+tune);	
+			screws(scr, bHeight/2+delta, bHeight, w-dw, totalDepth - wall +tune);	
 
 
 		// сверлим полости
 		for(i = [-1: 1])
-			translate([i * (2*rHole + wall), surfOffset, -bHeight/2 - wall/3])
+			translate([i * (2*rHole + wall)- 0*wall/3, surfOffset, -bHeight/2 - wall/3])
 				rotate(90, [1, 0 ,0])
 					rotate(180)
-						repRapLogo(rHole, depth2 + depth + wall + 2*delta, delta);
+						repRapLogo(rHole, totalDepth, delta);
 
 		// продольная полость
 		translate([w/2 - dw, depth/2 + delta, -bHeight/2 - wall/3])
@@ -120,27 +122,26 @@ module screws(scr, scrH, H, l, w)
 			screw(scr, scrH, H);
 }
 
-
-module slot(wall, width, height, base, l)
+module slot(height, baseHeight, wall, l, width)
 {
-	slot2(height, height + base, l + 2*wall, wall, width);
+	slot2(height, baseHeight, l + 2*wall, l, width);
 }
 
 module slot2(H, h, L, l, w)
 {
-	translate([-w/2, -L-l, 0])
+	translate([-w/2, -L, 0])
 	difference()
 	{	
 		union()
 		{
-		cube([w, L+l, H-w/2]);
-		translate([w/2, 0, H - w/2])
-		rotate(90, [-1,0,0])
-			cylinder(d = w, h = L+l);
+			cube([w, L, H-w/2]);
+			translate([w/2, 0, H - w/2])
+				rotate(90, [-1,0,0])
+					cylinder(d = w, h = L);
 		}
 	
-		translate([-delta/2, l, h])
-			cube([w+delta, L-l, H-h+delta]);
+		translate([-delta/2, (L-l )/2, h])
+			cube([w+delta, l, H-h+delta]);
 	}
 }
 
