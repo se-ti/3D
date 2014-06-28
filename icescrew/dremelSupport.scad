@@ -30,7 +30,7 @@ fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
 head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
 
 translate([0, -depth/2-l0/2 - delta, 0])
-	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
+!	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
 
 bor(0, l0);
 
@@ -49,6 +49,8 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 	dw = base*(1-cos(angle - bAngle)); // сколько отрезать с края
 
 	surfOffset = wall + dp + 2*delta + depth2/2; // смещение до лицевой поверхности
+
+	rHole = (bHeight-wall)/3;
 
 	// центр фиксирующего отверстия
 	dxFix = 2*rBolt + dw;
@@ -87,9 +89,16 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 					bolt(rBolt, 2* wall + depth + 3*delta + hDd, rotate);
 
 		// крепление к основанию
-
 		translate([-dw/2, depth/2+delta + tune/2, -bHeight-delta])
 			screws(scr, bHeight/2+delta, bHeight, w-dw, depth2 + depth + 2*delta+tune);	
+
+
+		// сверлим полости
+		for(i = [-1: 1])
+			translate([i * (2*rHole + wall/2), surfOffset, -bHeight/2 - wall/3])
+				rotate(90, [1, 0 ,0])
+					rotate(90)
+						repRapLogo(rHole, depth2 + depth + wall + 2*delta, delta);
 	}
 
 //	color("red")
