@@ -11,30 +11,28 @@ $fn = 100;
 
 
 
-r= 15;
-R = 20;
+
 r0 = 20 / 2;	// радиус шейки бора 
 l0 = 8;			// толщина захвата
 level = 35;			// не обязательно делать на всю высоту
 
-rBolt = 4;	// силовой винт
-rBolt2 = 2; // фиксирующие винты
-
+rBolt2 = 2; // фиксирующие винты (m4)
 rAxis = 3; // каленая ось вращения
 
 
-depth = 20;
+depth = 20;	// глубина основания
 
-angle = 30;
-bAngle = 8;
-dh = 5;
+mbase = 46; // радиус дуги высотной регулировки
+angle = 30;	// угол дуги
+bAngle = 8; // угол смещения
 
 
 
-mbase = 46;
+
 head(l0, r0, rBolt2, rAxis, mbase, angle, bAngle);
 base(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, depth);
 
+bor(0, l0);
 
 //dx = 3;
 //translate([10, -depth/2 +l0/2 + dx+delta, 0])
@@ -44,23 +42,13 @@ base(l0, r0, rBolt2, rAxis, mbase, angle, bAngle, depth);
 	//slot(4*rAxis, depth, 4* rAxis, rAxis, 6, l0 + 2*delta, dx);
 
 
-//slot2(30, 10, 50, 12, 16);
-
-
-
-bor(h, l0);
-
-
-
 
 module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
 {
-
 	sz = size(r0, base, angle, bAngle, rAxis, rBolt, depth);
 
-	//offset = r0 + 2*rBolt2;
-	h = sz[1]; //(r0 + rBolt2 + rAxis) * 2;
-	w = sz[0]; //max(2*r, base + 2*(rBolt2+ rAxis));
+	w = sz[0]; 
+	h = sz[1]; 
 	dp = sz[2];
 	dh = sz[3];
 
@@ -97,9 +85,9 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2)
 				cylinder(r = rBolt, h = 10*depth + delta);
 	}
 
-	color("red")
-	translate([0, -4, -10])
-		cube([mbase, 0.1, 0.1], true);
+//	color("red")
+//	translate([0, -4, -10])
+//		cube([mbase, 0.1, 0.1], true);
 
 }
 
@@ -137,8 +125,8 @@ function size(r0, base, angle, bAngle, rAxis, rBolt, depth ) =
 	[
 		max(2*(r0 + 2*rAxis + 2*rBolt), base + 2 * (rAxis + rBolt)), // длина
       max(2*(r0 + rBolt + rAxis), 4*rBolt + base*(sin(bAngle) + sin(angle-bAngle))),// высота
-		max(depth, 4*rBolt),		// толщина
-		base * sin(bAngle) + 2*rBolt
+		max(depth, 4*rBolt),							// толщина
+		base * sin(bAngle) + 2*rBolt				// смещение оси вверх 
 	];
 
 
@@ -146,13 +134,12 @@ module head(l, r0, rBolt2, rAxis, base, angle, bAngle)
 {
 	sz = size(r0, base, angle, bAngle, rAxis, rBolt2, l);
 
-	offset = r0 + 2*rBolt2;
-	h = sz[1]; //(r0 + rBolt2 + rAxis) * 2;
-	w = sz[0]; //max(2*r, base + 2*(rBolt2+ rAxis));
+	w = sz[0]; 
+	h = sz[1]; 
 	dp = sz[2];
 	dh = sz[3];
 
-
+	offset = r0 + 2*rBolt2;
 
 	difference()
 	{
