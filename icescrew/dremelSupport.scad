@@ -77,7 +77,7 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 					slot(dyFix + rBolt + rAxis + dx, dx, wall, depth + 2*delta, 2*rBolt + 2*rAxis, true, right = true);
 
 				translate([-w/2 + 2*rAxis, 0, 0])
-					slot(dh    + 2*rAxis + dx, dx, wall, depth + 2*delta, 4*rAxis, false, true);
+					slot(dh    + 2*rAxis + dx, dx, wall, depth + 2*delta, 4*rAxis, true, true);
 			}
 		}
 
@@ -128,9 +128,8 @@ module slot(height, baseHeight, wall, l, width, rare = false, left = false, righ
 	slot2(height, baseHeight, l + 2*wall, l, width);
 
 	if (rare)
-		rotate(180)
-			translate([-width/2, 2*wall + l, baseHeight])			
-				buttress(wall, width, height - baseHeight - width);
+		translate([width/2, -2*wall  -l, baseHeight])			
+			buttress(wall, width, height - baseHeight - width*3/4, false, true);
 	if (left)
 	{
 		translate([0, -2*wall - l, baseHeight])			
@@ -139,15 +138,31 @@ module slot(height, baseHeight, wall, l, width, rare = false, left = false, righ
 				buttress(wall, 1.5*width, height - baseHeight, true);
 	}
 	if (right)
-		rotate(180)
-			translate([wall, 0, baseHeight])			
-				buttress(wall, width, height - baseHeight - width, true);
+		translate([-wall, 0, baseHeight])			
+			buttress(wall, width, height - baseHeight - width, true, true);
 }
 
-module buttress(depth, width, height, inv = false)
+/*
+function buttrParam(x, p1, p2) = 
+	[	1 + p1 + p2,
+		(p1 + p2) != 0 ? x * p2 / (p1 + p2) : 0];
+
+module buttress(base, exts)
+{	
+	px = buttrParam(base[0], exts[0], exts[1]);
+	py = buttrParam(base[1], exts[2], exts[3]);
+
+	translate([px[1], py[1], 0])
+		linear_extrude(height = base[2], convexity = 2, scale=[1/px[0], 1/py[0]])
+			translate([-px[0] * px[1], -py[0] * py[1]])
+				square([px[0] * base[0], py[0] * base[1]]);
+}*/
+
+module buttress(depth, width, height, inv = false, shift = false)
 {
 	linear_extrude(height = height , center = false, convexity = 2, scale= inv ? [0, 1] : [1, 0])
-		square([width, depth]);
+		translate([shift? -width : 0, shift ? -depth : 0])
+			square([width, depth]);
 }
 
 module slot2(H, h, L, l, w)
@@ -305,6 +320,12 @@ module dremel(h, l0)
 								d2 = sizes[i - (sizes[i][3] ? 1 : 0)][1], 
 								h = sizes[i][0] - sizes[i-1][0]);
 			}	
+
+/*
+linear_extrude(height=10, scale = [3,1])
+	scale([1,2])
+		circle(r = 10, $fn = 100);
+*/
 }
 
 module bolt(r, h, rot = false, head = -1)
