@@ -25,12 +25,21 @@ fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
 
 
 
-head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
+al = 0;
+dx = 24;
+dz = 6;
+
+translate([-dx, 0, -dz])
+rotate([0, -al, 0])
+translate([dx, 0, dz])
+{
+	head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
+	dremel(0, l0);
+}
+
 
 translate([0, -depth/2-l0/2 - delta, 0])
 	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
-
-dremel(0, l0);
 
 
 
@@ -59,7 +68,11 @@ module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, s
 	hDd = 1; 			// вынос головки болта, чтобы не сильно ослаблял держатель
 	rotate = true; 	// вынести головку на другую опору
 	tune = 0.5;  		// подгон положения шурупов между опорами
-	
+
+	cat1 = w/2 - 2*rAxis;
+	cat2 = h/2 - dh;
+	deltaH = sin(angle)* cat1 + cos(angle)*cat2 - cat2;
+	echo("max dh: " , deltaH);
 
 	translate([0, 0, -h/2])
 	difference()
