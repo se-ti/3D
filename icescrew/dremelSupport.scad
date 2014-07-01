@@ -19,6 +19,10 @@ base = 50; // радиус дуги высотной регулировки
 angle = 30;	// угол дуги
 bAngle = 8; // угол смещения
 
+ClampClearance = 2;
+
+WhatToDraw = 0; // Что рисовать. 0 -- сборочный чертеж, 1 -- держатель бормашины, 2 -- база
+
 scr = stdScrew(1); // 0, 1, 2
 
 fixBase = max(base, 2* (r0 +  (rBolt + rAxis)));
@@ -29,19 +33,30 @@ al = 0;
 dx = 24;
 dz = 6;
 
-translate([-dx, 0, -dz])
-rotate([0, -al, 0])
-translate([dx, 0, dz])
-{
-	head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
-	dremel(0, l0);
-}
+if (WhatToDraw == 0)
+	{
+	translate([-dx, 0, -dz])
+	rotate([0, -al, 0])
+	translate([dx, 0, dz])
+	{
+		head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
+		dremel(0, l0);
+	}
 
 
-translate([0, -depth/2-l0/2 - delta, 0])
-	base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
-
-
+	translate([0, -depth/2-l0/2 - delta, 0])
+		base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
+	}
+else if (WhatToDraw == 1)
+	{
+	rotate ([90,0,0])
+		head(l0, r0, rBolt, rAxis, fixBase, angle, bAngle);
+	}
+else if (WhatToDraw == 2)
+	{
+	//rotate ([0,90,0])
+		base(l0, r0, rBolt, rAxis, fixBase, angle, bAngle, depth, level, wall, scr);
+	}
 
 module base(depth, r0, rBolt, rAxis, base, angle, bAngle, depth2, level, wall, scr)
 {
@@ -222,7 +237,7 @@ module head(l, r0, rBolt, rAxis, base, angle, bAngle)
 	{
 		cube([w, dp, h], true);
 		translate([-w/4 + delta/2, 0, 0])
-			cube([w/2+ delta, dp + delta, 2*delta], true);	// 2*delta -- зазор на стяжку
+			cube([w/2+ delta, dp + delta, ClampClearance], true);	// 2*delta -- зазор на стяжку
 
 		rotate(90, [1, 0, 0])
 			translate([0, 0, -dp/2 -delta/2])  
