@@ -4,27 +4,30 @@ debug = true;
 delta = 0.01;
 
 width = 65;
-height = 150;
+height = 118;
 thick = 6;
 wall = 4;
 rWnd = 10;
-wndX = 10;
-wndY = 0;
 
-shiftY = 13;
+btnDepth = 1.5;
+
+shift = 12;
+shiftX = 14;
 
 $fn = 50;
 
-oH = 30;
+// ocular mount
+oH = 20;
 or = 30/2;  // ocular radius
+ex = 6;
+oey = 7;
 
 
-// m3
+// m3 // 0.1 -- запас на точность печати
 rbolt = 1.5 + 0.1;
-rboltHead = 5.5 / 2 + delta + 0.1;
-rbHeadThick = 2;
+rboltHead = 5.5 / 2 + 0.1;
+rbHeadThick = 2.2;
 
-k = 2 / sqrt(3);
 
 
 /* p smart
@@ -33,67 +36,124 @@ k = 2 / sqrt(3);
 185px x 380
 (25;20) (48;20) центры объективов, размер: 20х20
 
-
-
 65-110 + 131-152 -- боковые клавиши
+
+
+iphone 
+67.10x138.30x7.10
+325x671
+
+(68x31)
+
+34x34
+echo (kMod * 65);
+echo (kMod * 152);
+
+echo (iMod* 68);
+echo (iMod* 31);
 */
 
+kMod = 150.1 / 380;
+kMod = 72.05 / 185;
 
-//nutSet(30, 6, 9, 10, 4);
+iMod = 138.3 / 671;
+
+
 body();
 
+if (debug)
 mirror([0, 0, 1])
-translate([wall + rboltHead + 14, or + wall + rbolt + rboltHead * k - shiftY, 1]) {
-    rotate(180, [0, 0, 1])
+translate([or + wall + rboltHead + 2 * rbolt - shiftX + oey +7, 
+           or + wall + rboltHead - rbolt     - shift  + ex -6,       1]) 
+{
+    rotate([0, 0, 90])
         half();
-    half();
+    rotate([0, 0, 270])
+        half();
+}
+else {
+    mntY2 = (or + wall + oey + 3 * rbolt);
+    translate([width + wall + 10, mntY2 - shift, 0])
+        half();
+    translate([width + wall + 10, 3*mntY2 - shift + 5, 0])
+        half();
 }
 
 
 
 module body() {
-    slide = 5;
-    minLen = 2 * (or + wall + rbolt);   
+    slide = 8;
+    minLen = 2 * (or + wall + rbolt + oey);
+    
+    extX = 6;
+    extY = 4;
+    
+    kWave = 0.6;
+    rWave = 4;
 
     difference() {
         union() {
             cube([width + wall, height + wall, thick + wall]);
-            translate([0, -shiftY, 0])
-            cube([width + wall, shiftY, wall]);
+            translate([-shiftX, -shift, 0])
+            cube([width + wall + shiftX, height + wall + shift, wall]);
         }
         
         translate([wall, wall, wall])
             cube([width + delta, height + delta, thick+delta]);
          
-        translate([rbolt + rWnd + 2*rboltHead, wall + rWnd, wall / 2]) // window
+        translate([wall + kMod * 48-1.5, wall + kMod * 20, wall / 2]) // window
             minkowski() {
-                cube([rWnd, rWnd, wall], true);
+                cube([extX, extY, wall], true);
                 translate([0, 0, -delta/2])
-                    cylinder(r = 5, h = delta);
-                //cylinder(r = rWnd, h = wall + delta);
+                    cylinder(r = or + 1, h = delta + 1.5*wall);
             }
+
+        translate([wall - btnDepth, kMod * 56, wall])       // side buttons
+            cube([btnDepth + delta, kMod*(160 - 56), thick + delta]);
+            
+        translate([rbolt + rboltHead - shiftX, rboltHead -shift, -delta/2])            // nut holes
+            pair(slide, rbolt, rboltHead, wall + thick + delta, thick + rbHeadThick  + delta/2, minLen);
+            
+        translate([rbolt + rboltHead - shiftX, rboltHead -shift + or + wall + ex, -delta/2])
+            pair(slide, rbolt, rboltHead, wall + thick + delta, thick + rbHeadThick + delta/2, minLen);
+            
+        translate([-shiftX, wall + 2* or + extY, -delta/2]) {   // extra area
+            wave(rWave, shiftX, wall + delta, kWave);
+            translate([0, 2*rWave, ])
+                cube([shiftX, height + wall - 2 * rWave,  wall + delta]);
+        }
         
-        translate([rbolt + rboltHead + rbolt, rboltHead * k -shiftY /*+ wall*/, 0])
-            rotate(90, [0, 0, 1])
-                pair(slide, rbolt, rboltHead, wall + thick, wall + thick - 2, minLen);
         
-        translate([rbolt + 3*rboltHead + rbolt + rWnd*2, rboltHead * k -shiftY /*+ wall-2*/ , 0])
-            rotate(90, [0, 0, 1])
-                pair(slide, rbolt, rboltHead, wall + thick, wall + thick - 2, minLen);
+        for (i = [0: 4])
+            translate([width + wall, wall + 2* or + extY + i * (4 + 4*rWave), -delta/2])
+                mirror([1, 0, 0])
+                    wave(rWave, i % 2 == 0 ? 12: 8, wall + delta, kWave);
     }
+
+    
+    if (debug)
+        translate([wall + kMod * 48, wall + kMod * 20, wall / 2]) // window axis
+            cylinder(r = 0.2, h = 10);
+    
+    if (debug)
+        translate([wall + kMod * 48-1, wall + kMod * 20, wall / 2]) // window
+            cube([extX+ 2, extY + 2, wall], true);
     
     if (debug)    // объективы    
         color("red")
             translate([wall, wall, wall])
-                objectif(or + 1);        
+                objectif(or + 1, kMod);        
+    
+    if (debug)    // объективы    
+        color("red")
+            translate([wall, wall, wall])
+                objectifI(or + 1, iMod); 
 }
 
 
 
 module half() {
-    ex = 10;
-    ey = 3*rbolt;
-    
+    ey = 3*rbolt + oey;   
     halfY = or + wall + ey;
     
     
@@ -121,7 +181,6 @@ module half() {
     if (debug)
         cylinder(r = 0.1, h = oH); // axis
 }
-
 
 
 module pair (len0, r0, r2, thick, thick2, dX) {
@@ -152,17 +211,47 @@ module semiSet(len, r, thick, bolt = false) {
         cylinder(r=r2, h=thick, $fn = fn);
 }
 
-module objectif(rLense) {
-    k = 150.1 / 380;
-    k = 72.05 / 185;
-    
-    r0 = 10 * k;
+module objectif(rLense, kMod) {   
+    r0 = 10 * kMod;
     //r0 = rLense;
+    r0 = 0.2;
     
     hull() {
-        translate([25*k, 20*k, 0])
+        translate([25*kMod, 20*kMod, 0])
             cylinder(r = r0, h = 2);
-        translate([48*k, 20*k, 0])
+        translate([48*kMod, 20*kMod, 0])
             cylinder(r = r0, h = 2);
     }
+}
+
+module objectifI(rLense, kMod) {
+    r0 = 0.2;
+    translate([68*kMod, 31*kMod, 0])
+        cylinder(r = r0, h = 2);
+}
+
+module wave(r, length, h, k = 0.4) {
+   
+    dx = length - 2*r *k;
+    translate([r *k+dx, 2*r, 0])
+        scale([k, 1, 1])
+            cylinder(r = r, h = h);
+    translate([0, r, 0])
+        cube([r*k + dx, 2*r, h]);
+    
+    difference() {
+        cube([r*k, r, h]);
+        translate([r*k, 0, 0])
+            scale([k, 1, 1])
+            cylinder(r = r, h = h);
+    }
+    
+    translate([0, 3*r, 0])
+    difference() {
+        cube([r*k, r, h]);
+        translate([r*k, r, 0])
+            scale([k, 1, 1])
+            cylinder(r = r, h = h);
+    }
+    
 }
