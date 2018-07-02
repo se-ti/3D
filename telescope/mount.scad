@@ -9,7 +9,7 @@ thick = 6;
 wall = 4;
 rWnd = 10;
 
-btnDepth = 1.5;
+btnDepth = wall + delta; // кнопочки надо нажимать руками
 
 shift = 12;
 shiftX = 14;
@@ -108,7 +108,7 @@ module body() {
                     cylinder(r = or + 1, h = delta + 1.5*wall);
             }
 
-        translate([wall - btnDepth, kMod * 56, wall])       // side buttons
+        translate([wall - btnDepth, wall + kMod * 56, wall])       // side buttons
             cube([btnDepth + delta, kMod*(160 - 56), thick + delta]);
             
         translate([rbolt + rboltHead - shiftX, rboltHead -shift, -delta/2])            // nut holes
