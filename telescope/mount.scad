@@ -5,7 +5,7 @@ delta = 0.01;
 
 width = 65;
 height = 118;
-thick = 6;
+thick = 7;
 wall = 4;
 rWnd = 10;
 
