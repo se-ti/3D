@@ -1,0 +1,23 @@
+{
+    "parameterSets": {
+        "Philips": {
+            "$fn": "50",
+            "delta": "0.001",
+            "dh": "1.5",
+            "dh2": "0.5",
+            "dw": "1.5",
+            "ext": "1",
+            "hand": "12",
+            "height": "15",
+            "peakX": "17",
+            "r": "2",
+            "thick": "25",
+            "topWidth": "22.5",
+            "wall": "3"
+        }
+    },
+    "parameterSets": "",
+    "fileFormatVersion": "1",
+    "parameterSets": "",
+    "parameterSets": ""
+}
