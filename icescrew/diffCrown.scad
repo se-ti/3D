@@ -63,7 +63,7 @@ module crown(r0, rb, r, R, H, h, th, n, attack, da, dh, probeH)
 		{
 			for (i = [0: n-1])
 				rotate(360/n * i)
-					tooth(r, R, TH, 360/n+attack, attack, rb, $fn, da, dh);
+					tooth(r, R, TH, 360/n+attack, attack, rb, $fn, da, dh, probeH);
 			
 		}
 
@@ -81,13 +81,15 @@ module crown(r0, rb, r, R, H, h, th, n, attack, da, dh, probeH)
 module tooth(r, R, th, angle, attack, rb, n, da, dh, probeH)
 {
 	// смещаем границу ближней и дальней зон наружу, следим, чтобы щуп всегда влез во внутреннюю щону
+	
+	borHeight = 10;
 
 	rMid = max(r + (R-r) * 2 /3, r+probeH + 2*delta); // 2*delta -- запас на грязь
 	// затылок
 	for (i = [0: n])
 		rotate(angle/n * i)
 			translate([0,0, th/n*i])
-				bor((r*(n-i) + rMid * i) / n, rb);
+				bor((r*(n-i) + rMid * i) / n, rb, borHeight);
 
 	// дальняя часть вертикали
 	for (i = [0: n])
@@ -99,13 +101,13 @@ module tooth(r, R, th, angle, attack, rb, n, da, dh, probeH)
 	for (i = [0: n])
 		rotate((attack+da)/n * i)
 			translate([0,0, th/n*i])
-				bor(rMid -delta, rb);
+				bor(rMid -delta, rb, borHeight);
 	
 	// горизонталь
 	for (i = [0: n])
 		rotate(attack +(angle - 2* attack)/n * i)
 			translate([0,0, th])	// должно быть + dh, но хватает и так
-				bor(r, rb);
+				bor(r, rb, borHeight);
 }
 
 
