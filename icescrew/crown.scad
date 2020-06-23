@@ -79,5 +79,5 @@ module shape(r, h, rare, segm, tw, fn = 300)
 	pth = [[0, 1, 2, 3, 4]];
 
 	linear_extrude(height = h, center = false, convexity = 4, twist = tw, slices = fn, $fn=fn)
-		polygon(points = pts, pathes = pth, convexity = 4);
+		polygon(points = pts, paths = pth, convexity = 4);
 }
