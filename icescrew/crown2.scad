@@ -37,7 +37,7 @@ module crown(r0, r, R, H, h, th, n, attack, da, dh)
 			body(r0, r, R, H, h, th, n);
 		}
 		
-		nuts(55, 0.8, r0 + 2);	// подобрать для другого числа зубов
+		nuts(55, 0.8, r0 + 2, 10);	// подобрать для другого числа зубов
 	}
 }
 
@@ -153,7 +153,7 @@ module cover(r, R, h, alpha, beta, n, scale, dh = 0)
 	}
 }
 
-module cov(m0, m1, i)
+module cov(m0, m1)
 {
 	fStrange([m1[0], m1[3], m0[3], m0[0]], [m1[1], m1[2], m0[2], m0[1]]);
 }
