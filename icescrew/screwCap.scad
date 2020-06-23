@@ -1,9 +1,9 @@
 
-module mKernel(R, r, part=0)
+module mKernel(R, r, part = 0)
 {
 	mkr = 0.001;
 
-	translate([0,0, -mkr/2])
+	translate([0, 0, -mkr/2])
 	intersection()
 	{
 		if (R == r)
@@ -11,12 +11,12 @@ module mKernel(R, r, part=0)
 		else
 			minkowski()
 			{
-				cylinder(h= mkr, r = R-r-mkr);
+				cylinder(h = mkr, r = R-r-mkr);
 				sphere(r = r-mkr, $fn = max($fn, 20));
 			}
 		if (part != 0)
-			translate([0,0, (part -1) * r])
-				cylinder(h= 2*r, r = R);
+			translate([0,0, (part-1) * r])
+				cylinder(h = 2*r, r = R);
 	}
 }
 
@@ -25,8 +25,8 @@ module mKernel(R, r, part=0)
 //{
 //	intersection()
 //	{
-//		translate([0, -(R+ delta)*sin(angle/2),0])
-//			cube([R + delta, 2*(R+ delta)*sin(angle/2), h]); // первое приближение
+//		translate([0, -(R+delta) * sin(angle/2),0])
+//			cube([R + delta, 2*(R+delta) * sin(angle/2), h]); // первое приближение
 //		difference()
 //		{
 //			cylinder(h, r = R + delta);
@@ -154,14 +154,14 @@ module screwCap(r0, h, st, tst, R, H, n, addThread = false, debug = true)
 		}
 
 		if (addThread)		
-			translate ([0,0, max(tst, (H - st -s )/2) + s])
+			translate ([0, 0, max(tst, (H - st - s)/2) + s])
 				threads(n, r + delta, r - h, th, st, angle); // чтобы точно вклеился
 	}
 }
 
 module arrayCap(arr, at = false, debug = true)
 {
-	screwCap(arr[0]/2, arr[0]/2 - arr[1] /2, arr[2], arr[3], arr[4]/2, arr[5], n, at, debug);
+	screwCap(arr[0]/2, arr[0]/2 - arr[1]/2, arr[2], arr[3], arr[4]/2, arr[5], n, at, debug);
 }
 
 delta = 0.1;
@@ -199,7 +199,7 @@ types = [
 [21.1, 17.6, 6, 	9,	24,	23],	// 2 Ушба
 [20.1, 17.2, 6.55, 8,24, 	23],	// 3 Гривель 360
 [19.8, 17.4, 6.55, 8,24, 	23],	// 4 Simond
-[22, 	 20.8, 6, 	7, 25.5,	23]	// 5 фирновый Шестминцев
+[22, 	 20.8, 6, 	7, 25.5,	23],	// 5 фирновый Шестминцев
 [20, 	 17.8, 6, 	7, 23,	23]	// 6 Шестминцев - 20
 
 //[, , , , ],	//
